@@ -1,0 +1,632 @@
+[
+  {
+    "id": "INC-001",
+    "title": "Stripe payment API timeout",
+    "description": "Payment processing failing. Stripe API calls timing out after 30 seconds during checkout. 2000+ customers affected during peak hours.",
+    "tech_stack": "java",
+    "error_type": "TIMEOUT",
+    "root_cause": "Connection pool size (50) too small for concurrent payment requests. Pool exhausted under load.",
+    "solution": [
+      "Increased HikariCP pool from 50 to 200 connections",
+      "Added connection timeout of 30s with retry logic",
+      "Implemented circuit breaker for external API calls"
+    ],
+    "service": "payment-gateway"
+  },
+  {
+    "id": "INC-002",
+    "title": "Order lookup query timeout",
+    "description": "Order history API taking 45+ seconds to load. Query scanning 10M orders without proper index.",
+    "tech_stack": "java",
+    "error_type": "TIMEOUT",
+    "root_cause": "Missing database index on orders.customer_id column causing full table scan.",
+    "solution": [
+      "Created index on customer_id and order_date",
+      "Query time reduced from 45s to 200ms",
+      "Added query performance monitoring"
+    ],
+    "service": "order-service"
+  },
+  {
+    "id": "INC-003",
+    "title": "Kafka message processing timeout",
+    "description": "Order confirmation messages delayed 15+ minutes. Consumer lag at 50K messages.",
+    "tech_stack": "java",
+    "error_type": "TIMEOUT",
+    "root_cause": "Single consumer processing 200ms per message. Producer rate exceeds consumer capacity.",
+    "solution": [
+      "Scaled to 8 parallel Kafka consumers",
+      "Optimized message processing to 30ms per message",
+      "Added consumer lag monitoring alerts"
+    ],
+    "service": "order-processor"
+  },
+  {
+    "id": "INC-004",
+    "title": "Third-party inventory API slow response",
+    "description": "Stock check timing out when calling supplier API. Checkout flow blocked for 5+ seconds.",
+    "tech_stack": "java",
+    "error_type": "TIMEOUT",
+    "root_cause": "Supplier API degraded. Response time increased from 100ms to 8s. No fallback mechanism.",
+    "solution": [
+      "Implemented 2s timeout with circuit breaker",
+      "Added cached inventory as fallback",
+      "Show estimated stock instead of real-time when API slow"
+    ],
+    "service": "inventory-service"
+  },
+  {
+    "id": "INC-005",
+    "title": "Database connection wait timeout",
+    "description": "User login failing with \"connection timeout\" error. All 100 DB connections in use.",
+    "tech_stack": "java",
+    "error_type": "TIMEOUT",
+    "root_cause": "Long-running analytics queries holding connections. Auth service starved of connections.",
+    "solution": [
+      "Moved analytics to dedicated read replica",
+      "Increased auth service pool to 150 connections",
+      "Set max connection lifetime to 30 minutes"
+    ],
+    "service": "auth-service"
+  },
+  {
+    "id": "INC-006",
+    "title": "PostgreSQL connection pool exhausted",
+    "description": "User registration API returning 503 errors. All 50 connections in use. Viral marketing campaign drove 10x traffic.",
+    "tech_stack": "python",
+    "error_type": "TIMEOUT",
+    "root_cause": "SQLAlchemy pool size too small for spike in user signups. Pool exhausted within minutes.",
+    "solution": [
+      "Increased pool_size from 50 to 200",
+      "Added pool_recycle=3600 to prevent stale connections",
+      "Implemented auto-scaling based on pool usage"
+    ],
+    "service": "user-service"
+  },
+  {
+    "id": "INC-007",
+    "title": "Invoice generation query timeout",
+    "description": "Month-end billing job taking 6 hours instead of 30 minutes. Scanning 50M invoice records.",
+    "tech_stack": "python",
+    "error_type": "TIMEOUT",
+    "root_cause": "No index on invoices table. Full table scan on 50M rows per customer query.",
+    "solution": [
+      "Created composite index on (customer_id, billing_date)",
+      "Implemented pagination: 1000 customers per batch",
+      "Query time dropped to 120ms per customer"
+    ],
+    "service": "billing-api"
+  },
+  {
+    "id": "INC-008",
+    "title": "Redis cache read timeout",
+    "description": "User profile API slow. Redis taking 5+ seconds per read. Cache hit causing slower performance than DB.",
+    "tech_stack": "python",
+    "error_type": "TIMEOUT",
+    "root_cause": "Cached 5MB user objects including base64 images. Redis serialization choking on large objects.",
+    "solution": [
+      "Removed images from cache (reduced to 50KB objects)",
+      "Added connection pooling with 2s timeout",
+      "Implemented cache key compression"
+    ],
+    "service": "user-service"
+  },
+  {
+    "id": "INC-009",
+    "title": "S3 file upload timeout",
+    "description": "Document upload failing for files >50MB. Timeout after 60 seconds. Users losing uploaded data.",
+    "tech_stack": "python",
+    "error_type": "TIMEOUT",
+    "root_cause": "Single-part upload for large files. Network congestion causing slow transfer to S3.",
+    "solution": [
+      "Implemented multipart upload for files >10MB",
+      "Increased timeout to 300s for large files",
+      "Added progress indicator for uploads"
+    ],
+    "service": "document-service"
+  },
+  {
+    "id": "INC-010",
+    "title": "External payment gateway timeout",
+    "description": "Credit card processing timing out. Gateway taking 45+ seconds to respond during peak checkout.",
+    "tech_stack": "python",
+    "error_type": "TIMEOUT",
+    "root_cause": "Payment gateway overloaded during flash sale. Single payment provider with no fallback.",
+    "solution": [
+      "Added PayPal as secondary payment provider",
+      "Implemented automatic failover on timeout",
+      "Increased timeout to 60s with retry logic"
+    ],
+    "service": "payment-api"
+  },
+  {
+    "id": "INC-011",
+    "title": "SendGrid email API rate limited",
+    "description": "Order confirmation emails failing. SendGrid returning 429 rate limit errors. 10K emails queued.",
+    "tech_stack": "nodejs",
+    "error_type": "TIMEOUT",
+    "root_cause": "Flash sale generated 5000 orders in 10 minutes. Exceeded SendGrid free tier limit (100/hour).",
+    "solution": [
+      "Implemented rate limiter: 900 emails/hour with queue",
+      "Split traffic between SendGrid and AWS SES",
+      "Added exponential backoff retry logic"
+    ],
+    "service": "notification-service"
+  },
+  {
+    "id": "INC-012",
+    "title": "MongoDB query without index",
+    "description": "Product search taking 30+ seconds. Scanning entire 5M product collection on every search.",
+    "tech_stack": "nodejs",
+    "error_type": "TIMEOUT",
+    "root_cause": "No index on products.name field. Text search doing full collection scan.",
+    "solution": [
+      "Created text index: db.products.createIndex({name: \"text\"})",
+      "Search time reduced from 30s to 50ms",
+      "Added query explain() to all slow queries"
+    ],
+    "service": "search-service"
+  },
+  {
+    "id": "INC-013",
+    "title": "Elasticsearch bulk indexing timeout",
+    "description": "Product catalog sync failing. Elasticsearch timing out on bulk insert of 100K products.",
+    "tech_stack": "nodejs",
+    "error_type": "TIMEOUT",
+    "root_cause": "Sending 100K documents in single bulk request. Elasticsearch timeout at 30s.",
+    "solution": [
+      "Split into batches of 1000 documents",
+      "Added parallel indexing with 5 concurrent batches",
+      "Increased Elasticsearch timeout to 60s"
+    ],
+    "service": "search-indexer"
+  },
+  {
+    "id": "INC-014",
+    "title": "WebSocket connection timeout",
+    "description": "Real-time chat disconnecting after 30 seconds. Users unable to receive messages.",
+    "tech_stack": "nodejs",
+    "error_type": "TIMEOUT",
+    "root_cause": "Load balancer killing idle WebSocket connections after 30s. No keepalive pings.",
+    "solution": [
+      "Implemented 20s heartbeat ping/pong",
+      "Configured load balancer idle timeout to 300s",
+      "Added automatic reconnection on disconnect"
+    ],
+    "service": "chat-service"
+  },
+  {
+    "id": "INC-015",
+    "title": "GraphQL resolver timeout",
+    "description": "Complex product page query timing out. Resolver making 50+ sequential database calls.",
+    "tech_stack": "nodejs",
+    "error_type": "TIMEOUT",
+    "root_cause": "N+1 query problem. Resolver fetching related data sequentially instead of batch.",
+    "solution": [
+      "Implemented DataLoader for batch fetching",
+      "Reduced queries from 50 to 3 using joins",
+      "Added GraphQL query complexity limits"
+    ],
+    "service": "api-gateway"
+  },
+  {
+    "id": "INC-016",
+    "title": "NullPointerException in payment webhook",
+    "description": "Stripe webhook handler crashing. Returns 500 when customer.email missing. Causes infinite Stripe retries.",
+    "tech_stack": "java",
+    "error_type": "NULL_REFERENCE",
+    "root_cause": "Guest checkout webhooks omit customer.email field. Code assumes email always present.",
+    "solution": [
+      "Added Optional<String> for email field",
+      "Use customer.id as fallback identifier",
+      "Return 200 to Stripe even on null email to stop retries"
+    ],
+    "service": "payment-gateway"
+  },
+  {
+    "id": "INC-017",
+    "title": "NullPointerException on shipping address",
+    "description": "Order processing stuck for digital products. Accessing address.zipCode when address is null.",
+    "tech_stack": "java",
+    "error_type": "NULL_REFERENCE",
+    "root_cause": "Digital products (ebooks, software) don't require shipping. Code assumes all orders have address.",
+    "solution": [
+      "Changed to Optional<Address> for shipping",
+      "Check product type before accessing address",
+      "Use billing address for tax when shipping null"
+    ],
+    "service": "order-processor"
+  },
+  {
+    "id": "INC-018",
+    "title": "NullPointerException in user preferences",
+    "description": "Settings page crashing when user.preferences null. New users have no preferences set yet.",
+    "tech_stack": "java",
+    "error_type": "NULL_REFERENCE",
+    "root_cause": "New user accounts have null preferences until first save. Settings page accesses preferences.theme directly.",
+    "solution": [
+      "Initialize empty preferences on account creation",
+      "Added null check with default preferences",
+      "Use Optional.ofNullable(user.getPreferences())"
+    ],
+    "service": "user-service"
+  },
+  {
+    "id": "INC-019",
+    "title": "NullPointerException in discount calculation",
+    "description": "Cart total showing error when discount code invalid. Accessing discount.percentage when discount is null.",
+    "tech_stack": "java",
+    "error_type": "NULL_REFERENCE",
+    "root_cause": "Invalid discount codes return null from lookup. Code doesn't check null before discount.getPercentage().",
+    "solution": [
+      "Added null check: if (discount == null) discount = 0",
+      "Use Optional<Discount> pattern",
+      "Show \"Invalid code\" message instead of crash"
+    ],
+    "service": "cart-service"
+  },
+  {
+    "id": "INC-020",
+    "title": "NullPointerException in JWT token parsing",
+    "description": "Auth API crashing on malformed JWT tokens. Accessing claims.subject when token invalid.",
+    "tech_stack": "java",
+    "error_type": "NULL_REFERENCE",
+    "root_cause": "Expired or tampered tokens parse successfully but return null claims. No validation before accessing.",
+    "solution": [
+      "Added token validation before parsing claims",
+      "Return 401 Unauthorized for null claims",
+      "Use try-catch around JWT parsing with proper error response"
+    ],
+    "service": "auth-service"
+  },
+  {
+    "id": "INC-021",
+    "title": "AttributeError on deleted user",
+    "description": "Profile update crashing. User deleted account but session active. Accessing user.email raises AttributeError.",
+    "tech_stack": "python",
+    "error_type": "NULL_REFERENCE",
+    "root_cause": "Race condition: user deletes account while profile update in progress. get_user() returns None.",
+    "solution": [
+      "Added null check: if user is None: raise UserNotFoundException",
+      "Implemented soft-delete with deleted_at timestamp",
+      "Invalidate session on account deletion"
+    ],
+    "service": "user-service"
+  },
+  {
+    "id": "INC-022",
+    "title": "AttributeError in subscription check",
+    "description": "Premium feature check failing. Accessing subscription.plan_id when subscription is None.",
+    "tech_stack": "python",
+    "error_type": "NULL_REFERENCE",
+    "root_cause": "Free tier users have no subscription record. Code assumes subscription always exists.",
+    "solution": [
+      "Added: subscription = get_subscription() or FreePlan()",
+      "Use subscription.get(\"plan_id\") with default",
+      "Create default free subscription for all users"
+    ],
+    "service": "billing-api"
+  },
+  {
+    "id": "INC-023",
+    "title": "KeyError in API response parsing",
+    "description": "Weather API integration crashing. Accessing response[\"temperature\"] when field missing.",
+    "tech_stack": "python",
+    "error_type": "NULL_REFERENCE",
+    "root_cause": "Third-party API returns incomplete data during outages. Missing required fields.",
+    "solution": [
+      "Changed to response.get(\"temperature\", default=None)",
+      "Added response validation before processing",
+      "Return cached data when API response incomplete"
+    ],
+    "service": "weather-service"
+  },
+  {
+    "id": "INC-024",
+    "title": "AttributeError in Kafka message handler",
+    "description": "Order event processor crashing. Accessing message.order_id when field doesn't exist.",
+    "tech_stack": "python",
+    "error_type": "NULL_REFERENCE",
+    "root_cause": "Schema evolution: old messages lack order_id field. Code uses dot notation instead of dict.get().",
+    "solution": [
+      "Changed to dict access: msg.get(\"order_id\")",
+      "Added Avro schema validation",
+      "Skip messages with missing required fields"
+    ],
+    "service": "order-processor"
+  },
+  {
+    "id": "INC-025",
+    "title": "NoneType error in pandas DataFrame",
+    "description": "Analytics report crashing. Accessing df[\"revenue\"] when column doesn't exist.",
+    "tech_stack": "python",
+    "error_type": "NULL_REFERENCE",
+    "root_cause": "Empty result set from SQL query returns None. Code assumes DataFrame always has data.",
+    "solution": [
+      "Added: if df is None or df.empty: return empty_report",
+      "Check column exists: if \"revenue\" in df.columns",
+      "Handle empty DataFrames gracefully"
+    ],
+    "service": "analytics-service"
+  },
+  {
+    "id": "INC-026",
+    "title": "TypeError accessing undefined user object",
+    "description": "Email sender crashing. Accessing user.email when user is undefined after account deletion.",
+    "tech_stack": "nodejs",
+    "error_type": "NULL_REFERENCE",
+    "root_cause": "Order placed then user deletes account. Notification service fetches user returns undefined.",
+    "solution": [
+      "Added optional chaining: user?.email || order.guest_email",
+      "Skip notification gracefully if user missing",
+      "Use order.billing_email as fallback"
+    ],
+    "service": "notification-service"
+  },
+  {
+    "id": "INC-027",
+    "title": "TypeError reading property of null",
+    "description": "Product page crashing. Accessing inventory.quantity when inventory lookup returns null.",
+    "tech_stack": "nodejs",
+    "error_type": "NULL_REFERENCE",
+    "root_cause": "New products don't have inventory record yet. Code assumes findById() always returns object.",
+    "solution": [
+      "Added: const quantity = inventory?.quantity ?? 0",
+      "Create inventory record when product created",
+      "Show \"Out of Stock\" when inventory null"
+    ],
+    "service": "inventory-service"
+  },
+  {
+    "id": "INC-028",
+    "title": "TypeError in config object",
+    "description": "API gateway returning 500. Accessing config.timeout when feature flag returns null.",
+    "tech_stack": "nodejs",
+    "error_type": "NULL_REFERENCE",
+    "root_cause": "Feature flag service returns empty string. JSON.parse(\"\") returns null.",
+    "solution": [
+      "Added validation: const config = JSON.parse(data) || {}",
+      "Use default config when parsing fails",
+      "Added typeof check for config object"
+    ],
+    "service": "api-gateway"
+  },
+  {
+    "id": "INC-029",
+    "title": "Cannot read property of undefined in MongoDB query",
+    "description": "User lookup failing. Accessing result.profile when findOne() returns null.",
+    "tech_stack": "nodejs",
+    "error_type": "NULL_REFERENCE",
+    "root_cause": "User not found but code assumes findOne() always returns document.",
+    "solution": [
+      "Added: if (!user) throw new UserNotFound()",
+      "Use optional chaining: user?.profile?.bio",
+      "Return 404 instead of 500 for missing users"
+    ],
+    "service": "user-service"
+  },
+  {
+    "id": "INC-030",
+    "title": "TypeError in nested object access",
+    "description": "Address validation failing. Accessing address.city.name when city is undefined.",
+    "tech_stack": "nodejs",
+    "error_type": "NULL_REFERENCE",
+    "root_cause": "International addresses may not have city field. Nested access without checking.",
+    "solution": [
+      "Added: const cityName = address?.city?.name || \"Unknown\"",
+      "Flatten address structure to avoid nesting",
+      "Validate address schema before processing"
+    ],
+    "service": "address-service"
+  },
+  {
+    "id": "INC-031",
+    "title": "OutOfMemoryError from unbounded JWT cache",
+    "description": "Auth service crashing every 4 hours. Heap at 98%. 500K+ tokens cached with no eviction.",
+    "tech_stack": "java",
+    "error_type": "MEMORY_LEAK",
+    "root_cause": "Using HashMap for tokens with no size limit or TTL. Tokens never evicted even after expiry.",
+    "solution": [
+      "Migrated to Caffeine cache with 100K max size",
+      "Added 1 hour TTL for automatic eviction",
+      "Increased heap from 4GB to 8GB as buffer"
+    ],
+    "service": "auth-service"
+  },
+  {
+    "id": "INC-032",
+    "title": "Connection leak from missing try-with-resources",
+    "description": "Database connections not returning to pool. After 2 hours, all 200 connections leaked.",
+    "tech_stack": "java",
+    "error_type": "MEMORY_LEAK",
+    "root_cause": "Using finally block but exceptions bypass close(). Connections not closed on error paths.",
+    "solution": [
+      "Migrated to try-with-resources for auto-close",
+      "Enabled HikariCP leak detection",
+      "Set maxLifetime to force connection recycling"
+    ],
+    "service": "order-service"
+  },
+  {
+    "id": "INC-033",
+    "title": "Thread pool growing unbounded",
+    "description": "Application slowing down over time. Thread count growing from 50 to 5000 over 24 hours.",
+    "tech_stack": "java",
+    "error_type": "MEMORY_LEAK",
+    "root_cause": "Creating new thread pool for each request instead of reusing. No thread pool shutdown.",
+    "solution": [
+      "Created single shared ExecutorService",
+      "Set max thread pool size to 200",
+      "Added shutdown hook to close pools on app stop"
+    ],
+    "service": "async-processor"
+  },
+  {
+    "id": "INC-034",
+    "title": "ClassLoader memory leak from hot reload",
+    "description": "Development server memory growing after each code reload. PermGen/Metaspace exhausted.",
+    "tech_stack": "java",
+    "error_type": "MEMORY_LEAK",
+    "root_cause": "Static references preventing old classes from being garbage collected. ClassLoader leak.",
+    "solution": [
+      "Removed static ThreadLocal variables",
+      "Added proper cleanup in context destroy listeners",
+      "Increased Metaspace from 256MB to 512MB"
+    ],
+    "service": "development-server"
+  },
+  {
+    "id": "INC-035",
+    "title": "String intern() causing memory buildup",
+    "description": "Application memory growing steadily. String pool consuming 2GB+ of heap space.",
+    "tech_stack": "java",
+    "error_type": "MEMORY_LEAK",
+    "root_cause": "Using String.intern() on user-generated content. Millions of unique strings in permanent pool.",
+    "solution": [
+      "Removed .intern() calls from user data processing",
+      "Use regular String objects instead",
+      "Added heap dump analysis to monitor String pool"
+    ],
+    "service": "data-processor"
+  },
+  {
+    "id": "INC-036",
+    "title": "Spark job OOM on large dataset",
+    "description": "Analytics job crashing at 3AM. Loading 100M events into memory causes MemoryError.",
+    "tech_stack": "python",
+    "error_type": "MEMORY_LEAK",
+    "root_cause": "Using pandas.read_sql() loads entire result into RAM. 100M rows = 8GB memory.",
+    "solution": [
+      "Switched to batch processing: 10K records per batch",
+      "Used Spark DataFrame.cache() and .unpersist()",
+      "Process incrementally: only new events since last run"
+    ],
+    "service": "analytics-pipeline"
+  },
+  {
+    "id": "INC-037",
+    "title": "Unclosed file handles exhausting system resources",
+    "description": "CSV export failing after 1000 requests. \"Too many open files\" error. Server restart required.",
+    "tech_stack": "python",
+    "error_type": "MEMORY_LEAK",
+    "root_cause": "Opening files without closing. Missing file.close() or context manager. Each request leaks 1 handle.",
+    "solution": [
+      "Changed to: with open(...) as f: for auto-close",
+      "Added finally: f.close() for existing code",
+      "Increased ulimit from 1024 to 65536"
+    ],
+    "service": "export-service"
+  },
+  {
+    "id": "INC-038",
+    "title": "Django QuerySet cache growing unbounded",
+    "description": "Web server memory growing 100MB/hour. ORM caching queries indefinitely.",
+    "tech_stack": "python",
+    "error_type": "MEMORY_LEAK",
+    "root_cause": "Not using .iterator() for large QuerySets. Django caches all results in memory.",
+    "solution": [
+      "Use .iterator() for large queries to avoid caching",
+      "Added database query result limits",
+      "Implemented pagination for all list endpoints"
+    ],
+    "service": "web-service"
+  },
+  {
+    "id": "INC-039",
+    "title": "Celery worker memory growing with tasks",
+    "description": "Background worker consuming 8GB memory after 24 hours. Memory never freed.",
+    "tech_stack": "python",
+    "error_type": "MEMORY_LEAK",
+    "root_cause": "Task results stored in memory. CELERY_RESULT_BACKEND not configured. Results pile up.",
+    "solution": [
+      "Configured Redis as result backend",
+      "Set result expiration to 1 hour",
+      "Added worker restart after 1000 tasks"
+    ],
+    "service": "worker-service"
+  },
+  {
+    "id": "INC-040",
+    "title": "Flask session data not expiring",
+    "description": "Redis memory at 95%. Session data from deleted users still stored.",
+    "tech_stack": "python",
+    "error_type": "MEMORY_LEAK",
+    "root_cause": "Flask sessions stored in Redis without TTL. Inactive sessions never expire.",
+    "solution": [
+      "Set session timeout: PERMANENT_SESSION_LIFETIME = 3600",
+      "Added Redis expiry on session keys",
+      "Clean up sessions on user logout"
+    ],
+    "service": "web-service"
+  },
+  {
+    "id": "INC-041",
+    "title": "EventEmitter leak in WebSocket handler",
+    "description": "API gateway memory growing from 200MB to 4GB in 6 hours. Server crashes requiring restart.",
+    "tech_stack": "nodejs",
+    "error_type": "MEMORY_LEAK",
+    "root_cause": "Adding event listeners on connection but never removing on disconnect. Each connection leaks ~1MB.",
+    "solution": [
+      "Added socket.removeAllListeners() on disconnect",
+      "Use .once() for one-time event handlers",
+      "Increased --max-old-space-size to 4GB as safety"
+    ],
+    "service": "api-gateway"
+  },
+  {
+    "id": "INC-042",
+    "title": "Global array growing unbounded",
+    "description": "Notification service memory growing 100MB/hour. Global messageIds array with 5M entries.",
+    "tech_stack": "nodejs",
+    "error_type": "MEMORY_LEAK",
+    "root_cause": "Storing processed message IDs in global array for deduplication. Array never cleared.",
+    "solution": [
+      "Switched to Redis Set with 24h TTL",
+      "Removed global array completely",
+      "Use Kafka consumer offsets instead of manual tracking"
+    ],
+    "service": "notification-service"
+  },
+  {
+    "id": "INC-043",
+    "title": "Closure capturing large objects",
+    "description": "Memory leak in Express middleware. Each request adds 5MB to heap.",
+    "tech_stack": "nodejs",
+    "error_type": "MEMORY_LEAK",
+    "root_cause": "Middleware closure capturing entire request object. Objects not garbage collected.",
+    "solution": [
+      "Extract only needed fields from request",
+      "Avoid capturing large objects in closures",
+      "Added heap profiling to catch similar issues"
+    ],
+    "service": "api-gateway"
+  },
+  {
+    "id": "INC-044",
+    "title": "MongoDB cursor not closed",
+    "description": "Database connections growing. 500+ open cursors after 1 hour.",
+    "tech_stack": "nodejs",
+    "error_type": "MEMORY_LEAK",
+    "root_cause": "Using cursor.find() but never calling cursor.close(). Each query leaks a cursor.",
+    "solution": [
+      "Use async/await with .toArray() to auto-close",
+      "Added finally: cursor.close() for manual iteration",
+      "Enabled cursor timeout in MongoDB"
+    ],
+    "service": "data-service"
+  },
+  {
+    "id": "INC-045",
+    "title": "setInterval never cleared",
+    "description": "Background polling intervals accumulating. 1000+ intervals running after 24 hours.",
+    "tech_stack": "nodejs",
+    "error_type": "MEMORY_LEAK",
+    "root_cause": "Creating setInterval on each request but never calling clearInterval. Intervals pile up.",
+    "solution": [
+      "Store interval IDs and clear on cleanup",
+      "Use single shared interval instead of per-request",
+      "Added cleanup on process termination"
+    ],
+    "service": "polling-service"
+  }
+]

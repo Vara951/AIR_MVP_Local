@@ -8,8 +8,7 @@ client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
 response = client.chat.completions.create(
     model="llama-3.1-8b-instant",
-    messages=[{"role": "user", "content": "Say 'uv is fast!' in 3 words"}],
-    max_tokens=10
+    messages=[{"role": "user", "content": "Who are you and what are your limitations compared other grop llms?"}],
 )
 
 print("✅ Groq API Response:", response.choices[0].message.content)

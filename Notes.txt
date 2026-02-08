@@ -1,0 +1,31 @@
+1. Database architecture
+    incidents:
+      - id               (PK, e.g., "INC-001")
+      - title            (Short summary)
+      - description      (What happened)
+      - tech_stack       (java/python/nodejs)
+      - error_type       (TIMEOUT/NULL_REFERENCE/MEMORY_LEAK)
+      - root_cause       (Why it happened - KEY for cross-stack learning)
+      - solution         (Array of fix steps)
+      - service          (Which microservice - context)
+
+2. HOW SEMANTIC SEARCH WORKS
+    USER QUERY: "Payment API timing out when calling database"
+                    ↓
+        [Convert to 384-dimension vector]
+                    ↓
+         [0.23, -0.45, 0.67, ... 384 numbers]
+                    ↓
+        [Compare to all incident vectors using COSINE SIMILARITY]
+                    ↓
+┌──────────────────────────────────────────────┐
+│  INC-001 (Java - Stripe timeout)     → 0.92 │ ← Very similar!
+│  INC-006 (Python - Postgres pool)    → 0.89 │ ← Cross-stack match!
+│  INC-016 (Java - Null pointer)       → 0.35 │ ← Not similar
+└──────────────────────────────────────────────┘
+                    ↓
+        [Fetch full details from PostgreSQL]
+                    ↓
+        [Split by tech_stack: same vs cross]
+                    ↓
+           [Return top matches sorted by score]
