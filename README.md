@@ -49,7 +49,6 @@ Developers waste hours debugging issues that someone in **another tech stack alr
 
 ### 1️⃣ Install Dependencies
 
-```bash
 pip install streamlit groq sentence-transformers qdrant-client psycopg2-binary python-dotenv torch
 
 
@@ -237,4 +236,5 @@ Each with:
 - Export runbooks as PDF
 
 ---
+
 
