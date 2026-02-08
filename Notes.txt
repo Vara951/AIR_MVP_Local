@@ -29,3 +29,62 @@
         [Split by tech_stack: same vs cross]
                     ↓
            [Return top matches sorted by score]
+
+3. Test Cases
+    TEST QUERIES (Based on Your Database)
+    Copy-paste these into your UI to test:
+
+    Test 1: Database Connection Pool (Java)
+    text
+    Description:
+    Payment processing timing out. Stripe API calls failing after 30 seconds. 2000+ customers affected during checkout. Connection pool appears exhausted.
+
+    Tech Stack: java
+
+    Error: java.net.SocketTimeoutException: Read timed out after 30000ms
+    Expected: Should find INC-001 (Stripe timeout) and INC-006 (Python pool exhausted) as cross-stack
+
+    Test 2: Null Reference (Python)
+    text
+    Description: User profile update API crashing. Happens when user deletes account but session is still active. Getting error when trying to access user email.
+
+    Tech Stack: python
+
+    Error: AttributeError: 'NoneType' object has no attribute 'email'
+    Expected: Should find INC-021 (Python AttributeError) and INC-016 (Java NullPointer) as cross-stack
+
+    Test 3: Memory Leak (Node.js)
+    text
+    Description: API gateway memory growing from 200MB to 4GB over 6 hours. Server crashes requiring restart. 5000+ concurrent WebSocket connections.
+
+    Tech Stack: nodejs
+
+    Error: FATAL ERROR: JavaScript heap out of memory
+    Expected: Should find INC-041 (EventEmitter leak) and INC-031 (Java cache leak) as cross-stack
+
+    Test 4: MongoDB Slow Query (Node.js)
+    text
+    Description: Product search taking 30+ seconds. Checkout flow blocked. Database scanning entire collection on every search query.
+
+    Tech Stack: nodejs
+
+    Error: MongoNetworkError: connection timed out
+    Expected: Should find INC-012 (MongoDB no index) and similar timeout patterns
+
+    Test 5: Kafka Consumer Lag (Java)
+    text
+    Description: Order confirmation messages delayed 15+ minutes. Kafka consumer lag at 50K messages. Orders not updating in real-time.
+
+    Tech Stack: java
+
+    Error: TimeoutException: Failed to send messages after 60000 ms
+    Expected: Should find INC-003 (Kafka lag) and similar timeout issues
+
+    Test 6: Redis Cache Timeout (Python)
+    text
+    Description: User profile API extremely slow. Redis taking 5+ seconds per read. Cache hit actually slower than database query.
+
+    Tech Stack: python
+
+    Error: redis.exceptions.TimeoutError: Timeout reading from socket
+    Expected: Should find INC-008 (Redis timeout) and connection pool issues
