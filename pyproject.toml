@@ -1,0 +1,11 @@
+[project]
+name = "air-mvp-local"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "langgraph>=1.0.8",
+    "notebook>=7.5.3",
+    "python-dotenv>=1.2.1",
+]

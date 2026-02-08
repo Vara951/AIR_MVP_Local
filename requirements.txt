@@ -1,0 +1,22 @@
+# Core Web Frameworks
+fastapi
+uvicorn[standard]
+streamlit
+
+# Databases
+qdrant-client
+psycopg2-binary
+
+# Machine Learning / Embeddings
+sentence-transformers
+torch
+
+# LLM API
+groq
+
+# Utilities
+python-dotenv
+pandas
+numpy
+requests
+tqdm
