@@ -1,24 +1,37 @@
-## 📄 `README.md`
-
-```markdown
 # 🔍 Cross-Stack Incident Analyzer
 
-AI-powered tool that finds production incident solutions across different programming languages (Java, Python, Node.js).
+AI-powered tool that finds **production incident solutions across different programming languages**
+(Java, Python, Node.js).
 
-**Problem:** Developers waste hours debugging issues that someone in another tech stack already solved.
+---
 
-**Solution:** Semantic search + AI finds similar incidents across languages and generates actionable runbooks.
+## 🧠 Problem
+
+Developers waste hours debugging issues that someone in **another tech stack already solved**.
+
+- Knowledge is siloed by language
+- Root causes are the same, but fixes are rediscovered repeatedly
+- On-call time is wasted reinventing solutions
+
+---
+
+## 💡 Solution
+
+**Semantic Search + AI** finds similar production incidents across stacks and generates
+**actionable, language-specific runbooks**.
 
 ---
 
 ## 🎯 What It Does
 
-1. You describe an incident (e.g., "API timing out to database")
-2. AI searches 45 production incidents using semantic similarity
-3. Finds matches from **your stack** AND **other stacks** with same root cause
-4. Generates step-by-step solution adapted to your language
+1. You describe an incident  
+   _Example: “API timing out to database”_
+2. AI searches historical production incidents using **semantic similarity**
+3. Finds matches from **your stack** *and* **other stacks** with the same root cause
+4. Generates a **step-by-step solution** adapted to your language
 
-**Key Insight:** A database timeout in Java has the same fix as Python - just different syntax!
+> **Key Insight:**  
+> A database timeout in Java has the same fix as Python — just different syntax.
 
 ---
 
@@ -27,18 +40,18 @@ AI-powered tool that finds production incident solutions across different progra
 - **Frontend:** Streamlit
 - **Database:** PostgreSQL (incident metadata)
 - **Vector Search:** Qdrant (semantic embeddings)
-- **AI:** Groq Llama-3.3-70B (free API)
+- **AI:** Groq (Llama-3.3-70B, free API)
 - **Embeddings:** Sentence-Transformers
 
 ---
 
 ## 🚀 Quick Setup
 
-### 1. Install Dependencies
+### 1️⃣ Install Dependencies
 
 ```bash
 pip install streamlit groq sentence-transformers qdrant-client psycopg2-binary python-dotenv torch
-```
+
 
 ### 2. Setup PostgreSQL
 
@@ -224,3 +237,4 @@ Each with:
 - Export runbooks as PDF
 
 ---
+
